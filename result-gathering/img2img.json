@@ -1,0 +1,592 @@
+{
+  "1": {
+    "inputs": {
+      "ckpt_name": "sd_xl_base_1.0.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Base Model"
+    }
+  },
+  "23": {
+    "inputs": {
+      "width": [
+        "108",
+        0
+      ],
+      "height": [
+        "110",
+        0
+      ],
+      "batch_size": [
+        "114",
+        0
+      ]
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "Empty Latent Image"
+    }
+  },
+  "35": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "crop_w": 0,
+      "crop_h": 0,
+      "target_width": [
+        "108",
+        0
+      ],
+      "target_height": [
+        "110",
+        0
+      ],
+      "text_g": "barber shop character",
+      "text_l": "barber shop character",
+      "clip": [
+        "88",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncodeSDXL",
+    "_meta": {
+      "title": "Positive Prompt (CLIP Text Encode)"
+    }
+  },
+  "36": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "crop_w": 0,
+      "crop_h": 0,
+      "target_width": [
+        "108",
+        0
+      ],
+      "target_height": [
+        "110",
+        0
+      ],
+      "text_g": "",
+      "text_l": "",
+      "clip": [
+        "88",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncodeSDXL",
+    "_meta": {
+      "title": "Negative Prompt (CLIP Text Encode)"
+    }
+  },
+  "55": {
+    "inputs": {
+      "add_noise": "enable",
+      "noise_seed": [
+        "113",
+        0
+      ],
+      "steps": [
+        "103",
+        0
+      ],
+      "cfg": [
+        "111",
+        1
+      ],
+      "sampler_name": "dpmpp_2m_sde",
+      "scheduler": "karras",
+      "start_at_step": [
+        "105",
+        0
+      ],
+      "end_at_step": [
+        "106",
+        0
+      ],
+      "return_with_leftover_noise": "enable",
+      "model": [
+        "88",
+        0
+      ],
+      "positive": [
+        "35",
+        0
+      ],
+      "negative": [
+        "36",
+        0
+      ],
+      "latent_image": [
+        "99",
+        0
+      ]
+    },
+    "class_type": "KSamplerAdvanced",
+    "_meta": {
+      "title": "Base - KSampler (Advanced)"
+    }
+  },
+  "59": {
+    "inputs": {
+      "add_noise": "disable",
+      "noise_seed": [
+        "113",
+        0
+      ],
+      "steps": [
+        "103",
+        0
+      ],
+      "cfg": [
+        "111",
+        1
+      ],
+      "sampler_name": "dpmpp_2m_sde",
+      "scheduler": "karras",
+      "start_at_step": [
+        "106",
+        0
+      ],
+      "end_at_step": 10000,
+      "return_with_leftover_noise": "disable",
+      "model": [
+        "60",
+        0
+      ],
+      "positive": [
+        "63",
+        0
+      ],
+      "negative": [
+        "64",
+        0
+      ],
+      "latent_image": [
+        "55",
+        0
+      ]
+    },
+    "class_type": "KSamplerAdvanced",
+    "_meta": {
+      "title": "Refiner - KSampler (Advanced)"
+    }
+  },
+  "60": {
+    "inputs": {
+      "ckpt_name": "sd_xl_refiner_1.0.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Refiner"
+    }
+  },
+  "63": {
+    "inputs": {
+      "ascore": 6.000000000000001,
+      "width": [
+        "108",
+        0
+      ],
+      "height": [
+        "110",
+        0
+      ],
+      "text": "barber shop character",
+      "clip": [
+        "60",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncodeSDXLRefiner",
+    "_meta": {
+      "title": "Positive Prompt Refiner CLIP Encode"
+    }
+  },
+  "64": {
+    "inputs": {
+      "ascore": 2.0000000000000004,
+      "width": [
+        "108",
+        0
+      ],
+      "height": [
+        "110",
+        0
+      ],
+      "text": "",
+      "clip": [
+        "60",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncodeSDXLRefiner",
+    "_meta": {
+      "title": "Negative Prompt Refiner CLIP Encode"
+    }
+  },
+  "65": {
+    "inputs": {
+      "samples": [
+        "59",
+        0
+      ],
+      "vae": [
+        "60",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "66": {
+    "inputs": {
+      "images": [
+        "65",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "SDXL Refiner"
+    }
+  },
+  "82": {
+    "inputs": {
+      "switch": "On",
+      "lora_name": "sdxl_logo_iconic_0-0003_0-0001_0-0001.safetensors",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "1",
+        0
+      ],
+      "clip": [
+        "1",
+        1
+      ]
+    },
+    "class_type": "CR Load LoRA",
+    "_meta": {
+      "title": "LoRA #1"
+    }
+  },
+  "84": {
+    "inputs": {
+      "switch": "On",
+      "lora_name": "sdxl_logo_cartoon_1_0-001_0-00005_0-0001.safetensors",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "82",
+        0
+      ],
+      "clip": [
+        "82",
+        1
+      ]
+    },
+    "class_type": "CR Load LoRA",
+    "_meta": {
+      "title": "LoRA #2"
+    }
+  },
+  "85": {
+    "inputs": {
+      "switch": "Off",
+      "lora_name": "None",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "84",
+        0
+      ],
+      "clip": [
+        "84",
+        1
+      ]
+    },
+    "class_type": "CR Load LoRA",
+    "_meta": {
+      "title": "LoRA #3"
+    }
+  },
+  "86": {
+    "inputs": {
+      "switch": "Off",
+      "lora_name": "None",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "85",
+        0
+      ],
+      "clip": [
+        "85",
+        1
+      ]
+    },
+    "class_type": "CR Load LoRA",
+    "_meta": {
+      "title": "LoRA #4"
+    }
+  },
+  "87": {
+    "inputs": {
+      "switch": "Off",
+      "lora_name": "None",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "86",
+        0
+      ],
+      "clip": [
+        "86",
+        1
+      ]
+    },
+    "class_type": "CR Load LoRA",
+    "_meta": {
+      "title": "LoRA #5"
+    }
+  },
+  "88": {
+    "inputs": {
+      "switch": "Off",
+      "lora_name": "None",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "87",
+        0
+      ],
+      "clip": [
+        "87",
+        1
+      ]
+    },
+    "class_type": "CR Load LoRA",
+    "_meta": {
+      "title": "LoRA #6"
+    }
+  },
+  "89": {
+    "inputs": {
+      "image": "ComfyUI_temp_nlfpj_00052_.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "91": {
+    "inputs": {
+      "upscale_method": "nearest-exact",
+      "width": [
+        "108",
+        0
+      ],
+      "height": [
+        "110",
+        0
+      ],
+      "crop": "center",
+      "image": [
+        "89",
+        0
+      ]
+    },
+    "class_type": "ImageScale",
+    "_meta": {
+      "title": "Upscale Image"
+    }
+  },
+  "92": {
+    "inputs": {
+      "pixels": [
+        "91",
+        0
+      ],
+      "vae": [
+        "1",
+        2
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "99": {
+    "inputs": {
+      "batch_size": [
+        "114",
+        0
+      ],
+      "latent": [
+        "92",
+        0
+      ]
+    },
+    "class_type": "CR Latent Batch Size",
+    "_meta": {
+      "title": "⚙️ CR Latent Batch Size"
+    }
+  },
+  "103": {
+    "inputs": {
+      "value": "b/a",
+      "a": [
+        "117",
+        1
+      ],
+      "b": [
+        "112",
+        1
+      ]
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "Total Scheduled Steps"
+    }
+  },
+  "105": {
+    "inputs": {
+      "value": "a-b",
+      "a": [
+        "103",
+        1
+      ],
+      "b": [
+        "112",
+        1
+      ]
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "Skipped Steps"
+    }
+  },
+  "106": {
+    "inputs": {
+      "value": "a+b",
+      "a": [
+        "105",
+        1
+      ],
+      "b": [
+        "118",
+        1
+      ]
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "Base Sampler End"
+    }
+  },
+  "108": {
+    "inputs": {
+      "value": "1024"
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "Image Width"
+    }
+  },
+  "110": {
+    "inputs": {
+      "value": "1024"
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "Image Height"
+    }
+  },
+  "111": {
+    "inputs": {
+      "value": "6"
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "CFG"
+    }
+  },
+  "112": {
+    "inputs": {
+      "value": "30"
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "Target Steps"
+    }
+  },
+  "113": {
+    "inputs": {
+      "value": "100"
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "Seed"
+    }
+  },
+  "114": {
+    "inputs": {
+      "value": "4"
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "Batch Size"
+    }
+  },
+  "115": {
+    "inputs": {
+      "value": "1"
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "Base Steps Portion"
+    }
+  },
+  "117": {
+    "inputs": {
+      "value": "0.95"
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "img2img Denoise Strength"
+    }
+  },
+  "118": {
+    "inputs": {
+      "value": "a*b",
+      "a": [
+        "115",
+        1
+      ],
+      "b": [
+        "112",
+        1
+      ]
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "Refiner Steps Calculation"
+    }
+  },
+  "save_image_websocket_node": {
+    "inputs": {
+      "images": [
+        "65",
+        0
+      ]
+    },
+    "class_type": "SaveImageWebsocket",
+    "_meta": {
+      "title": "SaveImageWebsocket"
+    }
+  }
+}

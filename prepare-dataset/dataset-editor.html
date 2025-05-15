@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>LoRA Dataset Editor (HTML + JS + Drag&Drop)</title>
+  <!-- Importa JSZip para exportar em .zip -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip-utils@0.1.0/dist/jszip-utils.min.js"></script>
+  <style>
+    body {
+      margin: 0; padding: 0;
+      font-family: sans-serif;
+      display: flex; flex-direction: column;
+      height: 100vh;
+      overflow: hidden; /* Evita rolagem do body, usamos contêiner interno */
+    }
+    header, footer {
+      flex-shrink: 0;
+      padding: 8px;
+      background: #eee;
+      display: flex;
+      align-items: center;
+    }
+    #mainContent {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative; /* para sobrepor o overlay */
+    }
+    /* Container esquerdo (pool) e direito (final) */
+    .sidePanel {
+      flex: 1;
+      display: flex; flex-direction: column;
+      border: 1px solid #ccc;
+      margin: 4px;
+      overflow: hidden;
+    }
+    .listContainer {
+      flex: 1;
+      overflow: auto;
+      padding: 4px;
+      background: #f9f9f9;
+    }
+    .paginationBar {
+      padding: 4px;
+      background: #ddd;
+      display: flex;
+      align-items: center;
+    }
+    /* Item (thumbnail) */
+    .itemFrame {
+      border: 1px solid #aaa;
+      margin-bottom: 8px;
+      display: flex;
+      padding: 4px;
+      cursor: pointer;
+      background: white;
+    }
+    .itemFrame img {
+      width: 64px; height: 64px;
+      object-fit: cover;
+      margin-right: 8px;
+    }
+    .itemTexts {
+      display: flex; flex-direction: column;
+    }
+    .itemName {
+      font-weight: bold;
+    }
+    .itemDesc {
+      color: gray;
+      font-size: 0.9em;
+    }
+    /* Preview maior + descrição */
+    #previewPanel {
+      flex-shrink: 0;
+      border-top: 1px solid #ccc;
+      padding: 8px;
+      display: flex;
+      align-items: flex-start;
+      background: #fafafa;
+    }
+    #previewImg {
+      width: 400px;
+      height: 400px;
+      object-fit: contain;
+      background: #eee;
+      margin-right: 16px;
+    }
+    #descArea {
+      width: 100%; height: calc(100% - 50px);
+    }
+    /* Drag Overlay */
+    #dragOverlay {
+      pointer-events: none; /* não captura cliques do usuário */
+      position: absolute;
+      top:0; left:0; right:0; bottom:0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.3);
+      color: white;
+      font-size: 1.5em;
+      z-index: 999;
+    }
+    #dragOverlay.active {
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <button id="btnImport">Importar Pares (Imagens + .txt)</button>
+  <label style="margin-left:10px;">
+    Tamanho da página:
+    <input id="pageSizeInput" type="number" value="15" min="5" max="200" style="width:60px">
+  </label>
+  <button id="btnExport" style="margin-left:10px;">Exportar</button>
+</header>
+
+<div id="mainContent">
+  <!-- Overlay para drag & drop -->
+  <div id="dragOverlay">Solte os arquivos aqui...</div>
+
+  <!-- Panel esquerdo (POOL) -->
+  <div class="sidePanel">
+    <div class="listContainer" id="poolList">
+      <!-- Itens da pool serão inseridos via JS -->
+    </div>
+    <div class="paginationBar">
+      <span id="poolPageInfo"></span>
+      <button id="btnPoolFirst" style="margin-left:8px;">&lt;&lt;</button>
+      <button id="btnPoolPrev">&lt;</button>
+      <button id="btnPoolNext">&gt;</button>
+      <button id="btnPoolLast">&gt;&gt;</button>
+      <!-- Botão "Adicionar todos da página" -->
+      <button id="btnAddAllPoolPage" style="margin-left:auto; margin-right:5px;">
+        Adicionar todos da página
+      </button>
+    </div>
+  </div>
+
+  <!-- Panel direito (FINAL) -->
+  <div class="sidePanel">
+    <div class="listContainer" id="finalList">
+      <!-- Itens da final serão inseridos via JS -->
+    </div>
+    <div class="paginationBar">
+      <span id="finalPageInfo"></span>
+      <button id="btnFinalFirst" style="margin-left:8px;">&lt;&lt;</button>
+      <button id="btnFinalPrev">&lt;</button>
+      <button id="btnFinalNext">&gt;</button>
+      <button id="btnFinalLast">&gt;&gt;</button>
+      <!-- Botão "Remover todos da página" -->
+      <button id="btnRemoveAllFinalPage" style="margin-left:auto; margin-right:5px;">
+        Remover todos da página
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Preview / Edição -->
+<div id="previewPanel">
+  <img id="previewImg" alt="Preview">
+  <div style="height: 100%; flex: 1">
+    <div><b>Descrição:</b></div>
+    <textarea id="descArea"></textarea>
+    <br>
+    <button id="btnSaveDesc">Salvar Descrição</button>
+    <button id="btnAddOne" style="margin-left:10px;">Adicionar Selecionado à Final</button>
+    <button id="btnRemOne">Remover Selecionado da Final</button>
+  </div>
+</div>
+
+<footer>
+  <small>Versão HTML+JS. Arraste arquivos do sistema (imagens + .txt) ou clique em “Importar”.</small>
+</footer>
+
+<script>
+// ---------------------------------------------
+// ESTRUTURA DE DADOS
+// ---------------------------------------------
+let pairs = [];             // array de objetos { nameBase, fileImg, urlImg, fileTxt, descricao, selecionado }
+let poolPage = 0;
+let finalPage = 0;
+let pageSize = 15;
+let currentItem = null;
+
+// Elementos da DOM
+const poolListEl    = document.getElementById('poolList');
+const finalListEl   = document.getElementById('finalList');
+const poolPageInfo  = document.getElementById('poolPageInfo');
+const finalPageInfo = document.getElementById('finalPageInfo');
+const previewImg    = document.getElementById('previewImg');
+const descArea      = document.getElementById('descArea');
+const dragOverlay   = document.getElementById('dragOverlay');
+
+// ---------------------------------------------
+// EVENTOS BÁSICOS (IMPORT, PAGE SIZE, EXPORT)
+// ---------------------------------------------
+document.getElementById('btnImport').addEventListener('click', () => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.multiple = true;
+  input.accept = ".png,.jpg,.jpeg,.txt";
+  input.onchange = async (e) => {
+    const files = Array.from(e.target.files);
+    await importFiles(files);
+    poolPage = 0;
+    finalPage = 0;
+    renderAll();
+  };
+  input.click();
+});
+
+document.getElementById('pageSizeInput').addEventListener('change', () => {
+  const val = parseInt(document.getElementById('pageSizeInput').value, 10);
+  pageSize = (isNaN(val) || val < 1) ? 15 : val;
+  poolPage = 0;
+  finalPage = 0;
+  renderAll();
+});
+
+document.getElementById('btnExport').addEventListener('click', async () => {
+  const epochs = prompt("Número de epochs:");
+  if (!epochs) return;
+  const trigger = prompt("Trigger word:");
+  if (!trigger) return;
+  const cats = prompt("Categorias (separadas por espaço):") || "";
+
+  // Gera ZIP via JSZip
+  const zip = new JSZip();
+  zip.folder("log");
+  zip.folder("model");
+
+  const imgFolder = zip.folder("img");
+  const subfolderName = `${epochs}_${trigger} ${cats}`.trim();
+  const subfolder = imgFolder.folder(subfolderName);
+
+  const selecionados = pairs.filter(p => p.selecionado);
+  for (let item of selecionados) {
+    // ler arrayBuffer da imagem
+    const arrayBuffer = await item.fileImg.arrayBuffer();
+    subfolder.file(item.fileImg.name, arrayBuffer);
+    // criar txt
+    const txtName = item.fileImg.name.replace(/\.(png|jpg|jpeg)$/i, ".txt");
+    subfolder.file(txtName, item.descricao, {binary: false});
+  }
+
+  const content = await zip.generateAsync({type:"blob"});
+  const blobUrl = URL.createObjectURL(content);
+  const a = document.createElement('a');
+  a.href = blobUrl;
+  a.download = "export_lora.zip";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(blobUrl);
+  alert("Exportação concluída!");
+});
+
+// ---------------------------------------------
+// FUNÇÕES DE IMPORTAR ARQUIVOS
+// ---------------------------------------------
+async function importFiles(files) {
+  let tempMap = new Map();
+  for (let f of files) {
+    const ext = f.name.split('.').pop().toLowerCase();
+    const base = f.name.slice(0, f.name.lastIndexOf('.'));
+    if (!tempMap.has(base)) {
+      tempMap.set(base, {imgFile: null, txtFile: null});
+    }
+    if (ext === 'png' || ext === 'jpg' || ext === 'jpeg') {
+      tempMap.get(base).imgFile = f;
+    } else if (ext === 'txt') {
+      tempMap.get(base).txtFile = f;
+    }
+  }
+  for (let [base, obj] of tempMap.entries()) {
+    if (!obj.imgFile) continue;
+    const fileImg = obj.imgFile;
+    const fileTxt = obj.txtFile || null;
+    const urlImg = URL.createObjectURL(fileImg);
+    let descricao = "";
+    if (fileTxt) {
+      descricao = await fileToString(fileTxt);
+    }
+    pairs.push({
+      nameBase: base,
+      fileImg,
+      urlImg,
+      fileTxt,
+      descricao,
+      selecionado: false
+    });
+  }
+}
+
+function fileToString(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsText(file, "utf-8");
+  });
+}
+
+// ---------------------------------------------
+// RENDERIZAÇÃO (POOL, FINAL, PREVIEW)
+// ---------------------------------------------
+function renderAll() {
+  renderLists();
+  renderPreview();
+}
+
+function renderLists() {
+  // Limpar
+  poolListEl.innerHTML = '';
+  finalListEl.innerHTML = '';
+
+  // Pool e final, ordenados
+  const poolItems = pairs.filter(p => !p.selecionado).sort((a,b) => a.fileImg.name.localeCompare(b.fileImg.name));
+  const finalItems = pairs.filter(p => p.selecionado).sort((a,b) => a.fileImg.name.localeCompare(b.fileImg.name));
+
+  // Paginação pool
+  const maxPoolPage = Math.max(0, Math.ceil(poolItems.length / pageSize) - 1);
+  if (poolPage > maxPoolPage) poolPage = maxPoolPage;
+  const poolStart = poolPage * pageSize;
+  const poolEnd = poolStart + pageSize;
+  const pagePoolItems = poolItems.slice(poolStart, poolEnd);
+
+  // Paginação final
+  const maxFinalPage = Math.max(0, Math.ceil(finalItems.length / pageSize) - 1);
+  if (finalPage > maxFinalPage) finalPage = maxFinalPage;
+  const finalStart = finalPage * pageSize;
+  const finalEnd = finalStart + pageSize;
+  const pageFinalItems = finalItems.slice(finalStart, finalEnd);
+
+  // Render pool
+  pagePoolItems.forEach(item => {
+    const div = createItemFrame(item);
+    poolListEl.appendChild(div);
+  });
+
+  // Render final
+  pageFinalItems.forEach(item => {
+    const div = createItemFrame(item);
+    finalListEl.appendChild(div);
+  });
+
+  // Info
+  poolPageInfo.textContent  = `Pool: Página ${poolPage+1} de ${maxPoolPage+1}`;
+  finalPageInfo.textContent = `Final: Página ${finalPage+1} de ${maxFinalPage+1}`;
+}
+
+function createItemFrame(item) {
+  const container = document.createElement('div');
+  container.className = "itemFrame";
+  container.addEventListener('click', () => {
+    currentItem = item;
+    renderPreview();
+  });
+  const imgEl = document.createElement('img');
+  imgEl.src = item.urlImg;
+  const textDiv = document.createElement('div');
+  textDiv.className = "itemTexts";
+
+  const nameEl = document.createElement('div');
+  nameEl.className = "itemName";
+  nameEl.textContent = item.fileImg.name;
+
+  const descEl = document.createElement('div');
+  descEl.className = "itemDesc";
+  let descLine = item.descricao.replace(/\n/g, ' ');
+  if (descLine.length > 60) descLine = descLine.slice(0,60) + "...";
+  descEl.textContent = descLine;
+
+  textDiv.appendChild(nameEl);
+  textDiv.appendChild(descEl);
+
+  container.appendChild(imgEl);
+  container.appendChild(textDiv);
+  return container;
+}
+
+function renderPreview() {
+  if (!currentItem) {
+    previewImg.src = "";
+    descArea.value = "";
+    return;
+  }
+  previewImg.src = currentItem.urlImg;
+  descArea.value = currentItem.descricao;
+}
+
+// ---------------------------------------------
+// Botões de paginação e todos
+// ---------------------------------------------
+document.getElementById('btnPoolFirst').addEventListener('click', () => {
+  poolPage = 0; renderAll();
+});
+document.getElementById('btnPoolPrev').addEventListener('click', () => {
+  poolPage = Math.max(0, poolPage-1); renderAll();
+});
+document.getElementById('btnPoolNext').addEventListener('click', () => {
+  poolPage++; renderAll();
+});
+document.getElementById('btnPoolLast').addEventListener('click', () => {
+  const poolItems = pairs.filter(p => !p.selecionado);
+  const maxPoolPage = Math.max(0, Math.ceil(poolItems.length / pageSize) - 1);
+  poolPage = maxPoolPage;
+  renderAll();
+});
+document.getElementById('btnAddAllPoolPage').addEventListener('click', () => {
+  const poolItems = pairs.filter(p => !p.selecionado).sort((a,b) => a.fileImg.name.localeCompare(b.fileImg.name));
+  const start = poolPage * pageSize;
+  const end = start + pageSize;
+  const pageItems = poolItems.slice(start, end);
+  pageItems.forEach(it => it.selecionado = true);
+  poolPage = 0; finalPage = 0;
+  renderAll();
+});
+
+document.getElementById('btnFinalFirst').addEventListener('click', () => {
+  finalPage = 0; renderAll();
+});
+document.getElementById('btnFinalPrev').addEventListener('click', () => {
+  finalPage = Math.max(0, finalPage-1); renderAll();
+});
+document.getElementById('btnFinalNext').addEventListener('click', () => {
+  finalPage++; renderAll();
+});
+document.getElementById('btnFinalLast').addEventListener('click', () => {
+  const finalItems = pairs.filter(p => p.selecionado);
+  const maxFinalPage = Math.max(0, Math.ceil(finalItems.length / pageSize) - 1);
+  finalPage = maxFinalPage;
+  renderAll();
+});
+document.getElementById('btnRemoveAllFinalPage').addEventListener('click', () => {
+  const finalItems = pairs.filter(p => p.selecionado).sort((a,b) => a.fileImg.name.localeCompare(b.fileImg.name));
+  const start = finalPage * pageSize;
+  const end = start + pageSize;
+  const pageItems = finalItems.slice(start, end);
+  pageItems.forEach(it => it.selecionado = false);
+  poolPage = 0; finalPage = 0;
+  renderAll();
+});
+
+// ---------------------------------------------
+// Botões de adicionar / remover item único e salvar descrição
+// ---------------------------------------------
+document.getElementById('btnAddOne').addEventListener('click', () => {
+  if (currentItem && !currentItem.selecionado) {
+    currentItem.selecionado = true;
+    poolPage = 0; finalPage = 0;
+    renderAll();
+  }
+});
+document.getElementById('btnRemOne').addEventListener('click', () => {
+  if (currentItem && currentItem.selecionado) {
+    currentItem.selecionado = false;
+    poolPage = 0; finalPage = 0;
+    renderAll();
+  }
+});
+document.getElementById('btnSaveDesc').addEventListener('click', () => {
+  if (!currentItem) return;
+  currentItem.descricao = descArea.value;
+  renderAll();
+//   alert("Descrição atualizada em memória.");
+});
+
+// ---------------------------------------------
+// DRAG AND DROP
+// ---------------------------------------------
+/*
+   Precisamos capturar dragenter / dragleave / dragover / drop no #mainContent
+   e usar dataTransfer.files.
+   Exibimos dragOverlay para indicar ao usuário que pode soltar os arquivos.
+*/
+const mainContent = document.getElementById('mainContent');
+
+// Impedir comportamentos padrões do navegador
+function preventDefaults(e) {
+  e.preventDefault();
+  e.stopPropagation();
+}
+
+['dragenter','dragover','dragleave','drop'].forEach(ev => {
+  mainContent.addEventListener(ev, preventDefaults, false);
+});
+
+// Detectar arrasto entrando e saindo
+mainContent.addEventListener('dragenter', () => {
+  dragOverlay.classList.add('active');
+}, false);
+
+mainContent.addEventListener('dragleave', (e) => {
+  // Checar se realmente saiu da área
+  // Se o retângulo do mainContent não contém mais o mouse, então remove
+  if (!mainContent.contains(e.relatedTarget)) {
+    dragOverlay.classList.remove('active');
+  }
+}, false);
+
+// Ao soltar arquivos
+mainContent.addEventListener('drop', async (e) => {
+  dragOverlay.classList.remove('active');
+  const dt = e.dataTransfer;
+  const files = Array.from(dt.files);
+  if (files.length > 0) {
+    await importFiles(files);
+    poolPage = 0; finalPage = 0;
+    renderAll();
+  }
+}, false);
+
+// Inicial
+renderAll();
+</script>
+
+</body>
+</html>

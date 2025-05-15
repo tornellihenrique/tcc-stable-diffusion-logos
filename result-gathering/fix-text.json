@@ -1,0 +1,643 @@
+{
+  "1": {
+    "inputs": {
+      "ckpt_name": "sd_xl_base_1.0.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Base Model"
+    }
+  },
+  "23": {
+    "inputs": {
+      "width": [
+        "108",
+        0
+      ],
+      "height": [
+        "110",
+        0
+      ],
+      "batch_size": [
+        "114",
+        0
+      ]
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "Empty Latent Image"
+    }
+  },
+  "35": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "crop_w": 0,
+      "crop_h": 0,
+      "target_width": [
+        "108",
+        0
+      ],
+      "target_height": [
+        "110",
+        0
+      ],
+      "text_g": "text \"Barber Shop\"",
+      "text_l": "text \"Barber Shop\"",
+      "clip": [
+        "88",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncodeSDXL",
+    "_meta": {
+      "title": "Positive Prompt (CLIP Text Encode)"
+    }
+  },
+  "36": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "crop_w": 0,
+      "crop_h": 0,
+      "target_width": [
+        "108",
+        0
+      ],
+      "target_height": [
+        "110",
+        0
+      ],
+      "text_g": "",
+      "text_l": "",
+      "clip": [
+        "88",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncodeSDXL",
+    "_meta": {
+      "title": "Negative Prompt (CLIP Text Encode)"
+    }
+  },
+  "55": {
+    "inputs": {
+      "add_noise": "enable",
+      "noise_seed": [
+        "113",
+        0
+      ],
+      "steps": [
+        "112",
+        0
+      ],
+      "cfg": [
+        "111",
+        1
+      ],
+      "sampler_name": "dpmpp_2m_sde",
+      "scheduler": "karras",
+      "start_at_step": 0,
+      "end_at_step": [
+        "118",
+        0
+      ],
+      "return_with_leftover_noise": "enable",
+      "model": [
+        "88",
+        0
+      ],
+      "positive": [
+        "147",
+        0
+      ],
+      "negative": [
+        "147",
+        1
+      ],
+      "latent_image": [
+        "23",
+        0
+      ]
+    },
+    "class_type": "KSamplerAdvanced",
+    "_meta": {
+      "title": "Base - KSampler (Advanced)"
+    }
+  },
+  "59": {
+    "inputs": {
+      "add_noise": "disable",
+      "noise_seed": [
+        "113",
+        0
+      ],
+      "steps": [
+        "112",
+        0
+      ],
+      "cfg": [
+        "111",
+        1
+      ],
+      "sampler_name": "dpmpp_2m_sde",
+      "scheduler": "karras",
+      "start_at_step": [
+        "118",
+        0
+      ],
+      "end_at_step": 10000,
+      "return_with_leftover_noise": "disable",
+      "model": [
+        "60",
+        0
+      ],
+      "positive": [
+        "63",
+        0
+      ],
+      "negative": [
+        "64",
+        0
+      ],
+      "latent_image": [
+        "55",
+        0
+      ]
+    },
+    "class_type": "KSamplerAdvanced",
+    "_meta": {
+      "title": "Refiner - KSampler (Advanced)"
+    }
+  },
+  "60": {
+    "inputs": {
+      "ckpt_name": "sd_xl_refiner_1.0.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Refiner"
+    }
+  },
+  "63": {
+    "inputs": {
+      "ascore": 6.000000000000001,
+      "width": [
+        "108",
+        0
+      ],
+      "height": [
+        "110",
+        0
+      ],
+      "text": "text \"Barber Shop\"",
+      "clip": [
+        "60",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncodeSDXLRefiner",
+    "_meta": {
+      "title": "Positive Prompt Refiner CLIP Encode"
+    }
+  },
+  "64": {
+    "inputs": {
+      "ascore": 2.0000000000000004,
+      "width": [
+        "108",
+        0
+      ],
+      "height": [
+        "110",
+        0
+      ],
+      "text": "",
+      "clip": [
+        "60",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncodeSDXLRefiner",
+    "_meta": {
+      "title": "Negative Prompt Refiner CLIP Encode"
+    }
+  },
+  "65": {
+    "inputs": {
+      "samples": [
+        "59",
+        0
+      ],
+      "vae": [
+        "60",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "66": {
+    "inputs": {
+      "images": [
+        "65",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "SDXL Refiner"
+    }
+  },
+  "82": {
+    "inputs": {
+      "switch": "Off",
+      "lora_name": "sdxl_logo_wordmark_0-0003_0-0001_0-0001.safetensors",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "1",
+        0
+      ],
+      "clip": [
+        "1",
+        1
+      ]
+    },
+    "class_type": "CR Load LoRA",
+    "_meta": {
+      "title": "LoRA #1"
+    }
+  },
+  "84": {
+    "inputs": {
+      "switch": "Off",
+      "lora_name": "None",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "82",
+        0
+      ],
+      "clip": [
+        "82",
+        1
+      ]
+    },
+    "class_type": "CR Load LoRA",
+    "_meta": {
+      "title": "LoRA #2"
+    }
+  },
+  "85": {
+    "inputs": {
+      "switch": "Off",
+      "lora_name": "None",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "84",
+        0
+      ],
+      "clip": [
+        "84",
+        1
+      ]
+    },
+    "class_type": "CR Load LoRA",
+    "_meta": {
+      "title": "LoRA #3"
+    }
+  },
+  "86": {
+    "inputs": {
+      "switch": "Off",
+      "lora_name": "None",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "85",
+        0
+      ],
+      "clip": [
+        "85",
+        1
+      ]
+    },
+    "class_type": "CR Load LoRA",
+    "_meta": {
+      "title": "LoRA #4"
+    }
+  },
+  "87": {
+    "inputs": {
+      "switch": "Off",
+      "lora_name": "None",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "86",
+        0
+      ],
+      "clip": [
+        "86",
+        1
+      ]
+    },
+    "class_type": "CR Load LoRA",
+    "_meta": {
+      "title": "LoRA #5"
+    }
+  },
+  "88": {
+    "inputs": {
+      "switch": "Off",
+      "lora_name": "None",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "87",
+        0
+      ],
+      "clip": [
+        "87",
+        1
+      ]
+    },
+    "class_type": "CR Load LoRA",
+    "_meta": {
+      "title": "LoRA #6"
+    }
+  },
+  "108": {
+    "inputs": {
+      "value": "1024"
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "Image Width"
+    }
+  },
+  "110": {
+    "inputs": {
+      "value": "1024"
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "Image Height"
+    }
+  },
+  "111": {
+    "inputs": {
+      "value": "4"
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "CFG"
+    }
+  },
+  "112": {
+    "inputs": {
+      "value": "20"
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "Steps"
+    }
+  },
+  "113": {
+    "inputs": {
+      "value": "100"
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "Seed"
+    }
+  },
+  "114": {
+    "inputs": {
+      "value": "4"
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "Batch Size"
+    }
+  },
+  "115": {
+    "inputs": {
+      "value": "1"
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "Base Steps Portion"
+    }
+  },
+  "118": {
+    "inputs": {
+      "value": "a*b",
+      "a": [
+        "115",
+        1
+      ],
+      "b": [
+        "112",
+        1
+      ]
+    },
+    "class_type": "SimpleMath+",
+    "_meta": {
+      "title": "Refiner Steps Calculation"
+    }
+  },
+  "121": {
+    "inputs": {
+      "image": "ComfyUI_temp_nlfpj_00052_.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "122": {
+    "inputs": {
+      "gpu": true,
+      "detect": "choose",
+      "language_list": "English",
+      "language_name": "ch_sim,en",
+      "image": [
+        "121",
+        0
+      ]
+    },
+    "class_type": "Apply EasyOCR",
+    "_meta": {
+      "title": "Apply EasyOCR"
+    }
+  },
+  "134": {
+    "inputs": {
+      "expand": 20,
+      "incremental_expandrate": 0,
+      "tapered_corners": true,
+      "flip_input": false,
+      "blur_radius": 20,
+      "lerp_alpha": 1,
+      "decay_factor": 1,
+      "fill_holes": false,
+      "mask": [
+        "122",
+        1
+      ]
+    },
+    "class_type": "GrowMaskWithBlur",
+    "_meta": {
+      "title": "Grow Mask With Blur"
+    }
+  },
+  "144": {
+    "inputs": {
+      "black_pixel_for_xinsir_cn": false,
+      "image": [
+        "121",
+        0
+      ],
+      "mask": [
+        "134",
+        0
+      ]
+    },
+    "class_type": "InpaintPreprocessor",
+    "_meta": {
+      "title": "Inpaint Preprocessor"
+    }
+  },
+  "145": {
+    "inputs": {
+      "control_type": "inpaint/outpaint",
+      "image": [
+        "149",
+        0
+      ]
+    },
+    "class_type": "ACN_ControlNet++InputNode",
+    "_meta": {
+      "title": "ControlNet++ Input 🛂🅐🅒🅝"
+    }
+  },
+  "146": {
+    "inputs": {
+      "name": "ControlNet-Union-Promax-SDXL.safetensors",
+      "plus_input": [
+        "145",
+        0
+      ]
+    },
+    "class_type": "ACN_ControlNet++LoaderAdvanced",
+    "_meta": {
+      "title": "Load ControlNet++ Model (Multi) 🛂🅐🅒🅝"
+    }
+  },
+  "147": {
+    "inputs": {
+      "strength": 1,
+      "start_percent": 0,
+      "end_percent": 1,
+      "positive": [
+        "35",
+        0
+      ],
+      "negative": [
+        "36",
+        0
+      ],
+      "control_net": [
+        "146",
+        0
+      ],
+      "image": [
+        "146",
+        1
+      ]
+    },
+    "class_type": "ACN_AdvancedControlNetApply_v2",
+    "_meta": {
+      "title": "Apply Advanced ControlNet 🛂🅐🅒🅝"
+    }
+  },
+  "149": {
+    "inputs": {
+      "fill_background": false,
+      "background_color": "#000000",
+      "RGBA_image": [
+        "144",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: ImageRemoveAlpha",
+    "_meta": {
+      "title": "LayerUtility: ImageRemoveAlpha"
+    }
+  },
+  "150": {
+    "inputs": {
+      "images": [
+        "144",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "151": {
+    "inputs": {
+      "images": [
+        "144",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "153": {
+    "inputs": {
+      "mask": [
+        "134",
+        0
+      ]
+    },
+    "class_type": "MaskToImage",
+    "_meta": {
+      "title": "Convert Mask to Image"
+    }
+  },
+  "154": {
+    "inputs": {
+      "images": [
+        "153",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "save_image_websocket_node": {
+    "inputs": {
+      "images": [
+        "65",
+        0
+      ]
+    },
+    "class_type": "SaveImageWebsocket",
+    "_meta": {
+      "title": "SaveImageWebsocket"
+    }
+  }
+}

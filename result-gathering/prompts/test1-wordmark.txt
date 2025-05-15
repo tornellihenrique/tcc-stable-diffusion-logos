@@ -1,0 +1,30 @@
+text FLUX, bold sans‑serif letters, solid single color
+text AURORA, ultra‑thin spacing, luxurious minimal look
+text NOVA intertwined into infinity symbol, metallic silver finish, subtle gradient
+text PULSE in lowercase casual cursive, playful, pastel palette
+text ZEN stacked vertically with tight leading, brutalist style, black on neon green
+text TERRA extended horizontal bar across letters, futuristic tech vibe
+text ECHO cut‑out negative space inside circular badge, monochrome
+text VORTEX gradient chrome effect, 80s retro aesthetic
+text LUNA condensed slab serif with spur details, western mood
+text APEX hand‑drawn brush stroke lettering, organic texture
+text SOLIS italicized clean sans serif, soft drop shadow
+text EMBER stencil typography, military utilitarian tone
+text DRIFT comprised of dotted strokes, ultra minimal
+text QUARTZ 3‑D extruded block letters, warm orange lighting
+text VECTOR only outlined letters, transparent interior fill
+text PRISM geometric modular letterforms, Bauhaus inspiration
+text ORBIT elegant script calligraphy, embossed gold foil
+text PIXEL digital glitch effect, RGB channel offset
+text NEXUS overlapping semi‑transparent characters, soft gradient fade
+text ELEVATE with leaf silhouette integrated into first letter, eco friendly
+text SPIRE monospaced terminal font, green phosphor on black
+text WAVE vintage serif with ornamental swashes, cream on burgundy
+text FUSION neon tube outline, glowing on deep navy background
+text GRAVITY folded ribbon lettering, subtle cyan shading
+text MOTION distressed rough texture, grunge rock feel
+text LYRIC high‑contrast didone serif, fashion magazine vibe
+text RADIUS halftone dotted fill, pop art influence
+text SPARK minimal underline accent, dark charcoal letters
+text SYNTH bold block letters with subtle bevel emboss
+text GLIDE casual handwritten marker style, sky‑blue ink

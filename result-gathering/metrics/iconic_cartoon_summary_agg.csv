@@ -1,0 +1,10 @@
+flow,loras,cfg,steps,n,clip_delta_mean,ocr_delta_mean,missing_no_%,missing_lora_%
+text2img,iconic:1.0;cartoon:1.0,4.0,15,120,0.0000,nan,99.2,98.3
+text2img,iconic:1.0;cartoon:1.0,4.0,20,120,-0.0011,nan,96.7,100.0
+text2img,iconic:1.0;cartoon:1.0,4.0,25,120,-0.0017,nan,97.5,99.2
+text2img,iconic:1.0;cartoon:1.0,5.0,15,120,0.0011,nan,100.0,99.2
+text2img,iconic:1.0;cartoon:1.0,5.0,20,120,-0.0019,nan,98.3,100.0
+text2img,iconic:1.0;cartoon:1.0,5.0,25,120,-0.0009,nan,100.0,100.0
+text2img,iconic:1.0;cartoon:1.0,6.0,15,120,0.0017,nan,99.2,98.3
+text2img,iconic:1.0;cartoon:1.0,6.0,20,120,-0.0021,nan,98.3,100.0
+text2img,iconic:1.0;cartoon:1.0,6.0,25,120,-0.0010,nan,98.3,97.5
