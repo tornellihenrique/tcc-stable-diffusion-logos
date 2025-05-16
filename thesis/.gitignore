@@ -19,4 +19,4 @@
 *.brf
 *.fdb_latexmk
 *.fls
-*.syntex.gs
+*.synctex.gz

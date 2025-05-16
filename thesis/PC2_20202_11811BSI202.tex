@@ -27,7 +27,7 @@ brazil]{facom-ufu-abntex2}
 % Informações de dados para CAPA e FOLHA DE ROSTO
 % ---
 
-\titulo{Geração e Aperfeiçoamento de Logotipos via Treinamento Adicional no Stable Diffusion XL} %TCC
+\titulo{Geração e Aperfeiçoamento de Logotipos via Ajuste Fino no Stable Diffusion XL} %TCC
 
 \hypersetup{pdfkeywords={IA}{deep learning}{geração de imagem}{logotipos}{LoRA}} %TCC
 
@@ -130,14 +130,14 @@ brazil]{facom-ufu-abntex2}
 % ---
 %TCC:
 \begin{resumo}
-    Esta dissertação avalia técnicas de \emph{treinamento adicional} (fine-tuning) aplicadas ao \textbf{Stable Diffusion XL} (SDXL), versão de alta resolução do modelo de difusão latente, com foco na adaptação leve oferecida pelo \textbf{LoRA}—\emph{Low-Rank Adaptation}, inserção de matrizes de baixa dimensão que exige bem menos parâmetros. Prepararam-se seis conjuntos de dados específicos (\emph{datasets}): estrutura tipográfica (\emph{wordmark}), símbolo gráfico (\emph{iconic}) e estilização (\emph{minimalistic}, \emph{vintage} e \emph{cartoon}). Cada conjunto foi treinado durante 10 épocas (\emph{epoch}: ciclo completo em que o modelo percorre todo o conjunto de treinamento), empregando taxas de aprendizado distintas para o modulador de texto (encoder CLIP-Text) e para a U-Net responsável pela imagem.
+    Esta dissertação avalia técnicas de \emph{ajuste fino} (fine-tuning) aplicadas ao \textbf{Stable Diffusion XL} (SDXL), versão de alta resolução do modelo de difusão latente, com foco na adaptação leve oferecida pelo \textbf{LoRA}—\emph{Low-Rank Adaptation}, inserção de matrizes de baixa dimensão que exige bem menos parâmetros. Prepararam-se seis conjuntos de dados específicos (\emph{datasets}): estrutura tipográfica (\emph{wordmark}), símbolo gráfico (\emph{iconic}) e estilização (\emph{minimalistic}, \emph{vintage} e \emph{cartoon}). Cada conjunto foi treinado durante 10 épocas (\emph{epoch}: ciclo completo em que o modelo percorre todo o conjunto de treinamento), empregando taxas de aprendizado distintas para o modulador de texto (encoder CLIP-Text) e para a U-Net responsável pela imagem.
 
-    A fase experimental gerou 8\,640 amostras, combinando sistematicamente a escala de orientação \emph{CFG} (Classifier-Free Guidance), o número de etapas de \emph{denoising} (\emph{Steps}) e algoritmo de amostragem (\emph{sampler}). As métricas adotadas incluíram similaridade CLIP (aderência semântica), acurácia OCR (legibilidade do texto) e avaliação humana. Os resultados mostram que o treinamento adicional via LoRA guia a difusão para um espaço de soluções mais restrito e coerente, reduzindo ruído visual e variações indesejadas. A legibilidade textual saltou de 37~\% no modelo base para 88~\% após o ajuste, superando 92~\% quando se aplicou o pós-processamento de correção de texto (\emph{fix-text}). A análise qualitativa confirma que a abordagem conserva o estilo desejado, melhora a precisão do nome da marca e permite diminuir o número total de etapas de amostragem. Conclui-se que o LoRA, aliado a curadoria criteriosa de dados e ajuste fino de hiperparâmetros, é a alternativa mais eficaz para especializar o SDXL na geração automática de logomarcas.  
+    A fase experimental gerou 8\,640 amostras, combinando sistematicamente a escala de orientação \emph{CFG} (Classifier-Free Guidance), o número de etapas de \emph{denoising} (\emph{Steps}) e algoritmo de amostragem (\emph{sampler}). As métricas adotadas incluíram similaridade CLIP (aderência semântica), acurácia OCR (legibilidade do texto) e avaliação humana. Os resultados mostram que o ajuste fino via LoRA guia a difusão para um espaço de soluções mais restrito e coerente, reduzindo ruído visual e variações indesejadas. A legibilidade textual saltou de 37\% no modelo base para 88\% após o ajuste, superando 92\% quando se aplicou o pós-processamento de correção de texto (\emph{fix-text}). A análise qualitativa confirma que a abordagem conserva o estilo desejado, melhora a precisão do nome da marca e permite diminuir o número total de etapas de amostragem. Conclui-se que o LoRA, aliado a curadoria criteriosa de dados e ajuste fino de hiperparâmetros, é a alternativa mais eficaz para especializar o SDXL na geração automática de logomarcas.  
     
     \vspace{\onelineskip}
     
     \noindent
-    \textbf{Palavras-chave}: geração de imagens, Stable Diffusion XL, LoRA, logomarcas, treinamento adicional.
+    \textbf{Palavras-chave}: geração de imagens, Stable Diffusion XL, LoRA, logomarcas, ajuste fino.
  \end{resumo}
 % ---
 
@@ -212,7 +212,35 @@ brazil]{facom-ufu-abntex2}
 %TCC:
 \chapter{Introdução}
 
-A síntese de imagens por Inteligência Artificial (IA) deu um salto decisivo em 2022 com a liberação pública do \textit{Stable Diffusion} (SD) \cite{rombach2022highresolutionimagesynthesislatent}\footnote{Disponibilizado pela Stability AI em colaboração com LAION e Eleuther AI, agosto de 2022.}. O SD introduziu o conceito de \emph{difusão latente}: em vez de operar no espaço de pixels, o modelo executa o processo de difusão em um espaço latente de menor dimensão codificado por um Variational Auto-Encoder (VAE). Essa solução reduz drasticamente memória e tempo de cálculo, preservando detalhes finos na imagem final.
+A síntese de imagens por Inteligência Artificial (IA) deu um salto decisivo em 2022
+com a liberação pública do \textit{Stable Diffusion} (SD) \cite{rombach2022highresolutionimagesynthesislatent}\footnote{Disponibilizado pela Stability AI em colaboração com LAION e Eleuther AI, agosto de 2022.}.
+O SD é um gerador de imagens baseado em \textbf{modelos de difusão latente}:
+ele parte de uma ``imagem'' composta apenas de ruído e, etapa a etapa, aprende a
+remover esse ruído até formar uma figura coerente que corresponda a uma
+\emph{instrução textual} escrita pelo usuário — por exemplo, \emph{``uma cidade
+futurista ao pôr do sol''}.
+O diferencial está no local onde essa difusão ocorre: não no espaço de pixels,
+mas em um \textbf{espaço latente} comprimido, codificado por um
+\emph{Autoencoder Variacional} (VAE).  Trabalhar nesse espaço reduz
+drasticamente o uso de memória e o tempo de cálculo, sem sacrificar detalhes
+finos na imagem final.
+
+O pipeline é composto por três blocos principais.  
+O VAE comprime imagens reais e reconstrói amostras geradas, atuando
+como ponte entre pixels e vetores latentes.  
+A \emph{U-Net} — rede convolucional em formato de ``U'', com camadas de
+contração e expansão — executa o processo de \emph{denoising}, estimando em
+cada passo quanto ruído ainda deve ser removido.  
+Por fim, o texto colocado pelo usuário é convertido em vetores semânticos pelo
+CLIP (\emph{Contrastive Language-Image Pre-training}), que alinha a
+descrição com a imagem em construção, garantindo aderência semântica entre
+palavras e pixels.
+
+Essa combinação de arquitetura eficiente e licença aberta tornou o Stable
+Diffusion relevante em múltiplos contextos: ele pode rodar em GPUs de consumo
+doméstico, é facilmente customizável — inclusive via \emph{treinamento
+adicional} leve — e já encontra aplicações em arte digital, design de jogos,
+publicidade e prototipagem de produtos.
 
 \subsection*{Evolução das versões do Stable Diffusion}
 
@@ -242,11 +270,11 @@ Esses avanços tornaram o SD e suas derivações a base de inúmeras aplicaçõe
 	\label{fig:sdxlSample1}
 \end{figure}
 
-\subsection*{Treinamento Adicional}
+\subsection*{Ajuste Fino}
 
 Com estes avanços, a geração de imagens tornou-se um processo acessível: basta fornecer uma descrição em texto e, em segundos, o algoritmo transforma ruído em figuras detalhadas e realistas.
 
-Todavia, esses modelos nascem genéricos; foram treinados em enormes coleções de imagens da internet. Quando surge a necessidade de especializar a saída — seja para um estilo artístico particular, uma estética de marca ou qualquer domínio visual específico — recorre-se a um treinamento adicional (\emph{fine-tuning}). No geral, parte-se do modelo já pré-treinado e realiza-se um breve ciclo de ajuste sobre um conjunto de exemplos cuidadosamente escolhidos. O procedimento preserva o conhecimento amplo adquirido anteriormente, mas direciona a rede a reproduzir padrões, cores e composições mais alinhados ao novo objetivo.
+Todavia, esses modelos nascem genéricos; foram treinados em enormes coleções de imagens da internet. Quando surge a necessidade de especializar a saída — seja para um estilo artístico particular, uma estética de marca ou qualquer domínio visual específico — recorre-se a um ajuste fino (\emph{fine-tuning}). No geral, parte-se do modelo já pré-treinado e realiza-se um breve ciclo de ajuste sobre um conjunto de exemplos cuidadosamente escolhidos. O procedimento preserva o conhecimento amplo adquirido anteriormente, mas direciona a rede a reproduzir padrões, cores e composições mais alinhados ao novo objetivo.
 
 Dessa forma, consegue-se combinar a versatilidade de um modelo geral com a precisão de um modelo feito sob medida, sem a necessidade de treinar tudo novamente do zero.
 
@@ -280,9 +308,9 @@ Quando combinadas, essas ferramentas oferecem um leque robusto de edição: o te
 
 \section{Problema}
 
-Apesar dos avanços trazidos pelo SDXL, a geração automática de logomarcas ainda enfrenta limitações que comprometem sua adoção prática. Quando se utilizam Instruções textuais curtas — por exemplo, apenas o nome da marca seguido de um adjetivo de estilo — o modelo raramente entrega uma identidade visual consistente: surgem composições incoerentes, símbolos desconexos ou mesmo imagens abstratas sem qualquer hierarquia gráfica típica de um logotipo.
+Apesar dos avanços trazidos pelo SDXL, a geração automática de logomarcas ainda enfrenta limitações que comprometem sua adoção prática. Quando se utilizam instruções textuais curtas — por exemplo, apenas o nome da marca seguido de um adjetivo de estilo — o modelo raramente entrega uma identidade visual consistente: surgem composições incoerentes, símbolos desconexos ou mesmo imagens abstratas sem qualquer hierarquia gráfica típica de um logotipo.
 
-Para tentar contornar essas falhas, muitos usuários recorrem à engenharia de instrução textual: descrições longas, repletas de qualificadores (família tipográfica, paleta de cores, alinhamento, espessura de traço, proporção do ícone), que buscam direcionar o modelo em cada detalhe. Embora possa haver melhoria pontual, esse processo é complexo, instável, demanda experiência e contraria a premissa de agilidade que tornou os modelos de difusão tão atraentes.
+Para tentar contornar essas falhas, muitos usuários recorrem à engenharia de \emph{prompt}: descrições longas, repletas de qualificadores (família tipográfica, paleta de cores, alinhamento, espessura de traço, proporção do ícone), que buscam direcionar o modelo em cada detalhe. Embora possa haver melhoria pontual, esse processo é complexo, instável, demanda experiência e contraria a premissa de agilidade que tornou os modelos de difusão tão atraentes.
 
 A tipografia é outro ponto crítico. Mesmo instruções textuais detalhadas não impedem o SDXL base de gerar letras distorcidas, glifos inexistentes ou duplicações aleatórias. Em muitos casos, o texto some por completo ou se mistura ao fundo, tornando a logomarca inutilizável.
 
@@ -347,9 +375,9 @@ A comparação direta entre as três tentativas deixa claro que simplesmente adi
 
 \section{Hipótese}
 
-A hipótese central deste trabalho é que a aplicação estruturada e específica de técnicas de treinamento adicional pode melhorar significativamente a qualidade geral das logomarcas geradas por modelos como o SDXL, independentemente da complexidade das instruções textuais fornecidas.
+A hipótese central deste trabalho é que a aplicação estruturada e específica de técnicas de ajuste fino pode melhorar significativamente a qualidade geral das logomarcas geradas por modelos como o SDXL, independentemente da complexidade das instruções textuais fornecidas.
 
-Mais especificamente, acredita-se que o uso dessa técnica de treinamento adicional poderá:
+Mais especificamente, acredita-se que o uso dessa técnica de ajuste fino poderá:
 
 \begin{itemize}
     \item Melhorar a consistência visual geral das imagens geradas, tornando-as mais próximas da estrutura e composição típicas de logomarcas;
@@ -367,7 +395,7 @@ Para atingir esse objetivo geral, foram definidos objetivos específicos claros:
 
 \begin{itemize}
     \item Criar conjuntos de dados estruturados e diversificados adequados ao treinamento especializado dos modelos;
-    \item Realizar treinamentos adicionais (\textit{treinamento adicional}) com estratégias específicas para direcionar melhor o foco visual e a coerência das logomarcas geradas;
+    \item Realizar ajustes finos com estratégias específicas para direcionar melhor o foco visual e a coerência das logomarcas geradas;
     \item Construir fluxos simples e intuitivos que facilitem a geração consistente de logomarcas sem exigir conhecimentos avançados de criação de instruções textuais;
     \item Documentar detalhadamente todos os procedimentos, hiperparâmetros e scripts utilizados (\ref{repo}), facilitando a replicação do processo por outros pesquisadores e profissionais criativos;
     \item Avaliar objetivamente a melhoria obtida nos resultados gerados por meio de métricas quantitativas e qualitativas.
@@ -419,11 +447,11 @@ Diferentemente dos modelos de difusão tradicionais que operam diretamente no es
 
 \subsection{Processo de Geração}
 
-O processo começa pela transformação da instrução textual em vetores numéricos, chamados de \emph{embeddings} semânticos, por meio do modelo CLIP (do inglês \emph{Contrastive Language-Image Pre-training}, “pré-treinamento contrastivo de texto e imagem”). O CLIP, treinado em milhões de pares imagem-texto, projeta frases e figuras no mesmo espaço vetorial, de modo que conteúdos semelhantes fiquem próximos. Paralelamente, um Autoencoder Variacional (VAE, do inglês \emph{Variational Autoencoder}) codifica o que será a “imagem-alvo” — inicialmente puro ruído no modo \emph{text-to-image} — em uma representação comprimida no espaço latente.
+O processo começa pela transformação da instrução textual em vetores numéricos, chamados de \emph{embeddings} semânticos, por meio do modelo CLIP (do inglês \emph{Contrastive Language-Image Pre-training}, ``pré-treinamento contrastivo de texto e imagem''). O CLIP, treinado em milhões de pares imagem-texto, projeta frases e figuras no mesmo espaço vetorial, de modo que conteúdos semelhantes fiquem próximos. Paralelamente, um Autoencoder Variacional (VAE, do inglês \emph{Variational Autoencoder}) codifica o que será a ``imagem-alvo'' — inicialmente puro ruído no modo \emph{text-to-image} — em uma representação comprimida no espaço latente.
 
 Três parâmetros controlam a dinâmica dessa geração: a \textbf{seed} (semente aleatória que determina o ruído inicial e garante reprodutibilidade), o número de \textbf{steps} (iterações de remoção de ruído) e a escala \textbf{CFG} (\emph{Classifier-Free Guidance}), que define quão fortemente o modelo deve seguir a descrição textual em vez de sua distribuição interna de imagens.
 
-A etapa central é a difusão reversa (\emph{denoising}), conduzida por uma rede neural em formato de “U” — a \emph{U-Net}. A geração inicia com o ruído latente; a cada iteração, a U-Net recebe o latente atual e os embeddings do texto e estima o ruído residual que precisa ser removido. O \emph{scheduler} (agenda de ruído) define o cronograma exato de remoção, especificando a fração de perturbação a retirar em cada passo. Em seguida, o \emph{sampler} (algoritmo de amostragem, como DDIM ou Euler) aplica as fórmulas que atualizam o latente de forma estável, obedecendo às instruções do scheduler. Esse ciclo se repete pelos \emph{steps} configurados, até que o ruído se aproxime de zero e a estrutura latente reflita um esboço coerente da imagem desejada.
+A etapa central é a difusão reversa (\emph{denoising}), conduzida por uma rede neural em formato de ``U'' — a \emph{U-Net}. A geração inicia com o ruído latente; a cada iteração, a U-Net recebe o latente atual e os embeddings do texto e estima o ruído residual que precisa ser removido. O \emph{scheduler} (agenda de ruído) define o cronograma exato de remoção, especificando a fração de perturbação a retirar em cada passo. Em seguida, o \emph{sampler} (algoritmo de amostragem, como DDIM ou Euler) aplica as fórmulas que atualizam o latente de forma estável, obedecendo às instruções do scheduler. Esse ciclo se repete pelos \emph{steps} configurados, até que o ruído se aproxime de zero e a estrutura latente reflita um esboço coerente da imagem desejada.
 
 Por fim, a representação latente refinada é decodificada de volta ao espaço de pixels pelo VAE, gerando a imagem final. O decodificador atua como um filtro de alta resolução, convertendo a compressão latente em detalhes visuais ricos, respeitando as cores, texturas e formas indicadas pela instrução textual.
 
@@ -455,20 +483,20 @@ O Stable Diffusion XL (SDXL) representa uma evolução significativa em relaçã
 \subsubsection*{Principais Melhorias Arquiteturais}
 
 \begin{itemize}
-    \item \textbf{Expansão da U-Net}: A U-Net do SDXL é aproximadamente três vezes maior que a do SD original, com um número aumentado de blocos de atenção. Essa expansão permite uma modelagem mais precisa de detalhes complexos nas imagens geradas.
+    \item \textbf{U-Net ampliada}: A rede U-Net do SDXL foi aumentada em profundidade e largura — mais camadas convolucionais, mais blocos residuais e seções de auto-atenção — chegando a cerca de três vezes o número de parâmetros do modelo original. Esse reforço de capacidade permite capturar texturas mais finas e relações espaciais de longo alcance, produzindo imagens com detalhes nítidos e composição mais coerente.
     \item \textbf{Duplo Codificador de Texto}: O SDXL incorpora um segundo codificador de texto, ampliando o contexto de atenção cruzada. Isso resulta em uma compreensão semântica mais profunda das instruções textuais, melhorando a coerência entre texto e imagem.
     \item \textbf{Treinamento em Múltiplas Proporções}: Diferentemente do SD, que era treinado principalmente em imagens quadradas, o SDXL foi treinado em múltiplas proporções de aspecto, aumentando sua versatilidade na geração de imagens em diferentes formatos.
     \item \textbf{Modelo de Refinamento}: O SDXL introduz um modelo de refinamento que aplica uma técnica de imagem para imagem pós-processamento, melhorando ainda mais a fidelidade visual das amostras geradas.
 \end{itemize}
 
-\subsection{Treinamento Adicional}
+\subsection{Ajuste Fino}
 
-Quando se deseja especializar um modelo de difusão já pré-treinado, realiza-se um treinamento adicional (\emph{fine-tuning}): um curto ciclo de ajuste que utiliza exemplos específicos do domínio de interesse. Na forma clássica, esse ajuste implica desbloquear milhões de pesos, definir taxas de aprendizado precisas, monitorar métricas de validação e cuidar para não cair em sobreajuste (\textit{overfitting})\footnote{O modelo memoriza demais o conjunto de treino e perde capacidade de generalizar.}. Além do tempo de GPU, há o custo de armazenar gradientes e estados do otimizador, que cresce rapidamente em redes volumosas como as variantes do Stable Diffusion XL.
+Quando se deseja especializar um modelo de difusão já pré-treinado, realiza-se um ajuste fino (\emph{fine-tuning}): um curto ciclo de ajuste que utiliza exemplos específicos do domínio de interesse. Na forma clássica, esse ajuste implica desbloquear milhões de pesos, definir taxas de aprendizado precisas, monitorar métricas de validação e cuidar para não cair em sobreajuste (\textit{overfitting})\footnote{O modelo memoriza demais o conjunto de treino e perde capacidade de generalizar.}. Além do tempo de GPU, há o custo de armazenar gradientes e estados do otimizador, que cresce rapidamente em redes volumosas como as variantes do Stable Diffusion XL.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{finetuning-1.png}
-    \caption{Ilustração demonstrando o processo de treinamento adicional. Neste treinamento o foco se baseia em transformar as saídas em imagens com estilo \textit{Pokemon}.}
+    \caption{Ilustração demonstrando o processo de ajuste fino. Neste treinamento o foco se baseia em transformar as saídas em imagens com estilo \textit{Pokemon}.}
     \label{fig:finetuning1}
 \end{figure}
 
@@ -485,7 +513,7 @@ Entre as abordagens mais equilibradas está o \textbf{LoRA — Low-Rank Adaptati
     \label{fig:finetuning2}
 \end{figure}
 
-A seguir alguns dados levantados pela comunidade em relação ao custo computacional para realizar os diferentes tipos de treinamento adicional:
+A seguir alguns dados levantados pela comunidade em relação ao custo computacional para realizar os diferentes tipos de ajuste fino:
 \begin{itemize}
       \item \textbf{Textual Inversion} Necessita \(\ge\!6\) GB de VRAM (8 GB é confortável) para resolução \(512^2\) px. Um ciclo comum usa \(\sim\!8\,000\) passos \citeonline{turn20view0}, o que leva cerca de 30-60 min numa RTX 3060 (\(\text{fp16}\), batch 1). O embedding gerado ocupa da ordem de 100-200 kB, portanto quase não impacta armazenamento.
       \item \textbf{DreamBooth} Treino completo do \textit{UNet} cabe em 16 GB de VRAM com \textit{gradient checkpointing} + \textit{bits-and-bytes} \citeonline{turn4view0}; caso o \textit{text encoder} também seja ajustado, exige pelo menos 24 GB \citeonline{turn16view0}. Experimentos usuais (400-800 passos) levam algo entre 15 min e 2 h dependendo da GPU. O checkpoint resultante adiciona 2-4 GB ao modelo base.
@@ -501,10 +529,10 @@ No geral podemos resumir da seguinte forma:
     \hline
     \textbf{Técnica} & \textbf{Ideia-chave} & \textbf{Vantagens} & \textbf{Limitações} \\ \hline
     Textual Inversion & Aprende um embedding textual a partir de poucas imagens & Simples; não altera os pesos do modelo & Baixa fidelidade estrutural; limitado para conceitos complexos \\ \hline
-    DreamBooth & Treinamento adicional focal em torno de um \textit{token} raro & Alta fidelidade visual & Alto custo de treino; risco de \textit{overfitting} \\ \hline
+    DreamBooth & Ajuste fino em torno de um \textit{token} raro & Alta fidelidade visual & Alto custo de treino; risco de \textit{overfitting} \\ \hline
     LoRA & Injeta matrizes de baixa dimensão em camadas congeladas & Leve; modular; empilhável & Sensível à configuração de rank e \(\alpha\); efeitos variam por camada \\ \hline
     \end{tabularx}
-    \caption{Técnicas de treinamento adicional.}
+    \caption{Técnicas de ajuste fino.}
     \label{tab:tecnicas_personalizacao}
 \end{table}
 
@@ -518,7 +546,7 @@ Para avaliar ou corrigir texto em imagens geradas, empregamos \textbf{EasyOCR}, 
 
 \section{Ferramentas de Apoio}
 
-\textbf{Kohya\_ss} \cite{kohya_ss} é uma suíte de código aberto amplamente adotada para treinamento adicional em modelos da família Stable Diffusion. Disponível tanto por linha de comando quanto por interface gráfica (GUI) construída em Gradio, ela cobre todo o ciclo de fine-tuning: cria arquivos de configuração em YAML, dispara os treinos, monitora em tempo real e faz pós-processamento dos resultados. Entre os recursos práticos destacam-se o suporte a \emph{mixed-precision} e quantização — reduzindo o consumo de VRAM em GPUs modestas —, a geração automática de gráficos de perda e acurácia, e utilitários que ajudam a balancear \emph{datasets} para minimizar sobreajuste. Dessa forma, pesquisadores podem ajustar hiperparâmetros de forma iterativa e observar imediatamente o impacto sem sair da mesma ferramenta.
+\textbf{Kohya\_ss} \cite{kohya_ss} é uma suíte de código aberto amplamente adotada para ajuste fino em modelos da família Stable Diffusion. Disponível tanto por linha de comando quanto por interface gráfica (GUI) construída em Gradio, ela cobre todo o ciclo de fine-tuning: cria arquivos de configuração em YAML, dispara os treinos, monitora em tempo real e faz pós-processamento dos resultados. Entre os recursos práticos destacam-se o suporte a \emph{mixed-precision} e quantização — reduzindo o consumo de VRAM em GPUs modestas —, a geração automática de gráficos de perda e acurácia, e utilitários que ajudam a balancear \emph{datasets} para minimizar sobreajuste. Dessa forma, pesquisadores podem ajustar hiperparâmetros de forma iterativa e observar imediatamente o impacto sem sair da mesma ferramenta.
 
 \textbf{ComfyUI} \cite{comfyui}, por sua vez, é um ambiente nodal para construção de fluxos de geração e edição de imagens. A interface baseia-se em um grafo visual: cada \emph{nó} representa uma operação (gerar ruído, aplicar inpainting, adicionar ControlNet, fazer upscale, calcular métrica) e possui \emph{sockets} tipados para entrada e saída, como imagem, \emph{latente}, condicionamento ou modelo. O usuário arrasta e conecta nós, definindo a ordem e o tipo de processamento de forma intuitiva; o grafo inteiro pode ser exportado em JSON, permitindo versionamento e compartilhamento entre equipes. Além da interface visual, o ComfyUI expõe uma API REST que executa o mesmo fluxo programaticamente, possibilitando automação de lotes, integração com sistemas web e coleta de metadados. Entre os controles avançados estão ajuste de semente, repetição de conjuntos de imagem e cache inteligente de nós já processados, garantindo reprodutibilidade e economia de tempo em experimentos sucessivos.
 
@@ -539,7 +567,7 @@ A pesquisa dedicada especificamente a logomarcas ainda é incipiente, mas dois e
 
 O primeiro foca na preservação ou inserção de logos existentes em novos cenários. Zhu introduziu o \textit{LogoSticker}, combinando pré-treino de identidade visual e um estágio condicional que mantém alta fidelidade na aplicação do logotipo em diferentes superfícies \cite{zhu2024logostickerinsertinglogosdiffusion}.
 
-O segundo eixo busca criar designs inéditos por IA; Wang demonstrou um treinamento adicional leve sobre Stable Diffusion para prototipagem gráfica publicitária, relatando ganhos perceptivos, ainda sem métricas padronizadas \cite{gao2024dtia}. Ambos apontam três obstáculos recorrentes: tipografia fiel, equilíbrio entre texto e símbolo e consistência de estilo ao longo de múltiplas gerações.
+O segundo eixo busca criar designs inéditos por IA; Wang demonstrou um ajuste fino leve sobre Stable Diffusion para prototipagem gráfica publicitária, relatando ganhos perceptivos, ainda sem métricas padronizadas \cite{gao2024dtia}. Ambos apontam três obstáculos recorrentes: tipografia fiel, equilíbrio entre texto e símbolo e consistência de estilo ao longo de múltiplas gerações.
 
 \subsection{Soluções comerciais}
 
@@ -547,9 +575,9 @@ Em paralelo ao meio acadêmico, ferramentas proprietárias — Looka \cite{looka
 
 \subsection{Lacunas identificadas}
 
-São nítidas algumas lacunas. Faltam protocolos padronizados para medir fidelidade tipográfica e preservação de identidade visual. Há escassez de estudos quantitativos comparando técnicas de treinamento adicional — \emph{Textual Inversion}, \emph{DreamBooth} e métodos de adaptação eficiente — no contexto de logomarcas.
+São nítidas algumas lacunas. Faltam protocolos padronizados para medir fidelidade tipográfica e preservação de identidade visual. Há escassez de estudos quantitativos comparando técnicas de ajuste fino — \emph{Textual Inversion}, \emph{DreamBooth} e métodos de adaptação eficiente — no contexto de logomarcas.
 
-Também não existem conjuntos de dados públicos suficientemente amplos e variados para servir de \textit{benchmark}. Em resumo, o estado da arte ainda carece de investigações sistemáticas que mostrem como especializar o SDXL, por meio de treinamento adicional leve, para gerar logomarcas nítidas, coerentes e produzidas a partir de instruções textuais curtas.
+Também não existem conjuntos de dados públicos suficientemente amplos e variados para servir de \textit{benchmark}. Em resumo, o estado da arte ainda carece de investigações sistemáticas que mostrem como especializar o SDXL, por meio de ajuste fino leve, para gerar logomarcas nítidas, coerentes e produzidas a partir de instruções textuais curtas.
 
 % ---
 
@@ -565,11 +593,11 @@ O desenvolvimento do projeto começou com uma revisão conceitual dos pilares da
 
 Na sequência, mergulhei na arquitetura do Stable Diffusion: analisei a difusão latente, o encoder textual baseado em CLIP e o pipeline completo de geração. Em paralelo, aprendi a montar fluxos de inferência no SDXL, explorando algoritmos de amostragem, agenda de ruído e parâmetros de controle de ruído. Essa etapa prática resultou em inúmeros protótipos de geração, fundamentais para entender as limitações do modelo base.
 
-Com a fundação teórica e prática estabelecida, passei a testar métodos de treinamento adicional. Avaliei abordagens mais robustas—como DreamBooth—e versões leves, culminando na escolha do LoRA. Realizei então várias tentativas de fine-tuning: usei, de um lado, um dataset extenso de logomarcas corporativas existentes e, de outro, centenas de milhares de logos simplificados com descrições textuais curtas. Ambos os experimentos mostraram-se pouco eficazes; o modelo memoriza estilos díspares e não converge para uma representação clara, sobretudo quando se aplica LoRA de maneira genérica.
+Com a fundação teórica e prática estabelecida, passei a testar métodos de ajuste fino. Avaliei abordagens mais robustas—como DreamBooth—e versões leves, culminando na escolha do LoRA. Realizei então várias tentativas de fine-tuning: usei, de um lado, um dataset extenso de logomarcas corporativas existentes e, de outro, centenas de milhares de logos simplificados com descrições textuais curtas. Ambos os experimentos mostraram-se pouco eficazes; o modelo memoriza estilos díspares e não converge para uma representação clara, sobretudo quando se aplica LoRA de maneira genérica.
 
 Esses resultados sugeriram que a especialização precisaria ser modular. Em vez de um único treinamento abarcar todas as variáveis, planejei dividir a tarefa em múltiplos LoRAs focados em aspectos bem definidos. Defini, então, dois treinamentos para a estrutura da marca — \emph{Wordmark} (ênfase tipográfica) e \emph{Iconic} (ênfase gráfica) — e três treinamentos independentes para estilização: \emph{Minimalistic}, \emph{Vintage} e \emph{Cartoon}. Essa estratégia permitiu combinar, de forma flexível, uma base estrutural com um acabamento estético, mantendo o modelo ágil e o processo de ajuste pontual e controlável.
 
-\section{Seleção da Abordagem: Treinamento Adicional com LoRA}
+\section{Seleção da Abordagem: Ajuste Fino com LoRA}
 
 Abordagens como DreamBooth foram descartadas devido a limitações computacionais (Intel 13900K e RTX 4070 Ti 12GB). Optou-se pelo LoRA, que permite especialização de modelos com baixo custo computacional e alta eficiência prática.
 
@@ -794,7 +822,7 @@ Em seguida são apresentados os painéis de comparação completos, englobando a
 
 \subsection{Análise Visual}
 
-A análise visual dos painéis comprova, de maneira objetiva, o impacto do treinamento adicional com LoRA. Nas amostras geradas sem adaptação, o modelo frequentemente deriva: surgem símbolos genéricos, manchas abstratas ou composições que pouco lembram uma logomarca. Após a aplicação dos LoRAs — especialmente na combinação de um LoRA base com um LoRA de estilo — o comportamento torna-se notavelmente mais dirigido. As imagens passam a exibir estrutura centralizada, áreas de respiro equilibradas e paletas cromáticas coerentes, mesmo quando a instrução textual permanece concisa.
+A análise visual dos painéis comprova, de maneira objetiva, o impacto do ajuste fino com LoRA. Nas amostras geradas sem adaptação, o modelo frequentemente deriva: surgem símbolos genéricos, manchas abstratas ou composições que pouco lembram uma logomarca. Após a aplicação dos LoRAs — especialmente na combinação de um LoRA base com um LoRA de estilo — o comportamento torna-se notavelmente mais dirigido. As imagens passam a exibir estrutura centralizada, áreas de respiro equilibradas e paletas cromáticas coerentes, mesmo quando a instrução textual permanece concisa.
 
 A evolução tipográfica é igualmente nítida. Antes, caracteres apareciam distorcidos, duplicados ou ausentes; com o LoRA, o texto não apenas se mantém presente, mas incorpora o estilo proposto—linhas limpas no minimalista, pátina suave no vintage ou contornos expressivos no cartoon. Embora ainda existam pequenas imperfeições, a frequência de falhas severas diminui drasticamente. Em síntese, o LoRA atua como um orientador de arte: mesmo com descrições breves, o modelo entrega logomarcas consistentes e visualmente profissionais, reduzindo a necessidade de ajustes extensos na instrução textual.
 
@@ -939,8 +967,8 @@ Para cada combinação \emph{flow} (fluxo do pipeline), \emph{loras},
 \begin{align*}
   \overline{\Delta}_{\text{CLIP}} &\quad\text{— ganho médio semântico} \\
   \overline{\Delta}_{\text{OCR}}  &\quad\text{— ganho médio na legibilidade do texto} \\
-  \text{missing\_no \%}           &\quad\text{— taxa de falha textual sem LoRA} \\
-  \text{missing\_lora \%}         &\quad\text{— taxa de falha textual com LoRA}.
+  \text{missing\_no\%}           &\quad\text{— taxa de falha textual sem LoRA} \\
+  \text{missing\_lora\%}         &\quad\text{— taxa de falha textual com LoRA}.
 \end{align*}
 
 \begin{figure}[ht]
@@ -1112,7 +1140,7 @@ FID\(_{\text{style}}\) restrito a logomarcas. Os principais achados são:
 
 \begin{itemize}
   \item \textbf{Similaridade CLIP}.  
-        Em \(92\,\%\) dos pares o LoRA aumentou a similaridade
+        Em 92\% dos pares o LoRA aumentou a similaridade
         texto-imagem, com ganho médio
         \(
           \overline{\Delta}_{\text{CLIP}} = +0{,}15
@@ -1123,9 +1151,9 @@ FID\(_{\text{style}}\) restrito a logomarcas. Os principais achados são:
 
   \item \textbf{Legibilidade (OCR)}.  
         A proporção de amostras cujo texto foi perfeitamente reconhecido
-        subiu de \(37\,\%\) (modelo base) para \(88\,\%\) após o
+        subiu de 37\% (modelo base) para 88\% após o
         treinamento LoRA,
-        chegando a \(92\,\%\) quando aplicado o fluxo \emph{fix-text};
+        chegando a 92\% quando aplicado o fluxo \emph{fix-text};
         o ganho é refletido por
         \(
           \overline{\Delta}_{\text{OCR}} > 0
@@ -1141,7 +1169,7 @@ A análise qualitativa corroborou os números:
     \item Impacto por estilo:
     \begin{itemize}
         \item \textbf{Minimalistic}: simplificou a forma, mas introduziu ruídos pontuais.
-        \item \textbf{Vintage}: conferiu efeito retrô convincente, contudo ocasionalmente surgiram marcas-d’água.
+        \item \textbf{Vintage}: conferiu efeito retrô convincente, contudo ocasionalmente surgiram marcas-d'água.
         \item \textbf{Cartoon}: gerou visual vibrante, porém nem sempre manteve o traço cartunesco esperado.
     \end{itemize}
     \item O \emph{fix-text} mostrou-se eficaz para corrigir falhas tipográficas residuais. Apesar de ainda ser necessário realizar em média duas tentativas com diferentes parâmetros.
