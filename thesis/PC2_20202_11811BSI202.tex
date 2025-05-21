@@ -11,6 +11,7 @@ brazil]{facom-ufu-abntex2}
 \usepackage{subcaption}
 \usepackage{float}
 \usepackage{amsmath}
+\usepackage{pdfpages}
 
 \graphicspath{{figuras/}{pictures/}{images/}{./}} % where to search for the images
 
@@ -44,42 +45,51 @@ brazil]{facom-ufu-abntex2}
 
 
 % ---
+% Inserir ficha catalografica
+% ---
+%
+\includepdf{fichacatalografica.pdf}
+%
+
+
+% ---
 % Inserir folha de aprovação
 % ---
 %
-% \includepdf{folhadeaprovacao_final.pdf} %TCC: depois de aprovado o trabalho, descomente esta linha e comente o próximo bloco para incluir scan da folha de aprovação.
+\includepdf[pages=-]{folhadeaprovacao_final.pdf}
 %
-\begin{folhadeaprovacao}
 
-  \begin{center}
-    {\ABNTEXchapterfont\large\imprimirautor}
+% \begin{folhadeaprovacao}
 
-    \vspace*{\fill}\vspace*{\fill}
-    {\ABNTEXchapterfont\bfseries\Large\imprimirtitulo}
-    \vspace*{\fill}
+%   \begin{center}
+%     {\ABNTEXchapterfont\large\imprimirautor}
+
+%     \vspace*{\fill}\vspace*{\fill}
+%     {\ABNTEXchapterfont\bfseries\Large\imprimirtitulo}
+%     \vspace*{\fill}
     
-    \hspace{.45\textwidth}
-    \begin{minipage}{.5\textwidth}
-        \imprimirpreambulo
-    \end{minipage}%
-    \vspace*{\fill}
-   \end{center}
+%     \hspace{.45\textwidth}
+%     \begin{minipage}{.5\textwidth}
+%         \imprimirpreambulo
+%     \end{minipage}%
+%     \vspace*{\fill}
+%    \end{center}
     
-    % Trabalho aprovado. \imprimirlocal, 24 de novembro de 2012: %TCC:
+%     % Trabalho aprovado. \imprimirlocal, 24 de novembro de 2012: %TCC:
 
-   \assinatura{\textbf{\imprimirorientador} \\ Orientador}  
-   \assinatura{\textbf{Professor Alexsandro Santos Soares} \\ Convidado 1} %TCC:
-   \assinatura{\textbf{Professor Ivan da Silva Sendin} \\ Convidado 2} %TCC:
+%    \assinatura{\textbf{\imprimirorientador} \\ Orientador}  
+%    \assinatura{\textbf{Professor Alexsandro Santos Soares} \\ Convidado 1} %TCC:
+%    \assinatura{\textbf{Professor Ivan da Silva Sendin} \\ Convidado 2} %TCC:
       
-   \begin{center}
-    \vspace*{0.5cm}
-    {\large\imprimirlocal}
-    \par
-    {\large\imprimirdata}
-    \vspace*{1cm}
-  \end{center}
+%    \begin{center}
+%     \vspace*{0.5cm}
+%     {\large\imprimirlocal}
+%     \par
+%     {\large\imprimirdata}
+%     \vspace*{1cm}
+%   \end{center}
   
-\end{folhadeaprovacao}
+% \end{folhadeaprovacao}
 % ---
 
 
