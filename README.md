@@ -7,7 +7,7 @@ pesos LoRA, fluxos ComfyUI, scripts de geração e avaliação de métricas, al�
 texto completo da tese em LaTeX.
 
 > **PDF oficial da tese:**  
-> 👉 **TODO — inserir link público do trabalho final** 👈
+> <https://repositorio.ufu.br/handle/123456789/45883>
 
 ## Visão geral
 
